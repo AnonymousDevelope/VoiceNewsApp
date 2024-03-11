@@ -21,7 +21,7 @@ export const Microphone = ({ widht, height }) => (
 );
 
 export const MicrophoneOff = ({ width, height }) => (
- <i className="fa fa-microphone-slash"></i>
+ <i className="fa fa-microphone-slash fa-3x"></i>
 );
 
 export {Like,DisLike}
