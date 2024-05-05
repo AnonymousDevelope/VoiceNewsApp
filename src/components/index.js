@@ -1,3 +1,4 @@
 import Navbar from './navbar';
 import NewsCard from './news_card'
-export { Navbar,NewsCard }
+import Loading from './loading/loading';
+export { Navbar,NewsCard,Loading }

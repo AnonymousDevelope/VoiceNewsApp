@@ -3,7 +3,10 @@ import { useState, useEffect, useMemo } from "react";
 import "./index.scss";
 import { fetchNews } from "../../service";
 import { Microphone, MicrophoneOff } from "../../assets/svgs";
-import { NewsCard } from "../../components";
+import { Loading, NewsCard } from "../../components";
+import { useContext } from "react";
+import { VoiceNewsContext } from "../../context";
+
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 const mic = new SpeechRecognition();
@@ -11,15 +14,17 @@ const mic = new SpeechRecognition();
 mic.continuous = true;
 mic.interimResults = true;
 mic.lang = "en-US";
+
 const Index = () => {
   const [isListening, setIsListening] = useState(false);
   const [note, setNote] = useState(null);
-  const [savedNotes, setSavedNotes] = useState([]);
   const [news, setNews] = useState(null);
+  const { state, setState, loading, setLoading, newsList, setNewsList } = useContext(VoiceNewsContext);
+
   useEffect(() => {
     handleListen();
   }, [isListening]);
-  
+
   const handleListen = () => {
     if (isListening) {
       mic.start();
@@ -29,14 +34,32 @@ const Index = () => {
       };
     } else {
       mic.stop();
-      fetchNews(note).then((data) => setNews(data));
+      setLoading(true);
+
+      const fetchData = async () => {
+        try {
+          const data = await fetchNews(state);
+          setNews(data);
+          setNewsList(data);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchData();
+
       mic.onend = () => {
         console.log("Stopped Mic on Click");
         console.log(news);
+        setState(note);
         setNote("");
       };
     }
+
     mic.onstart = () => {
+      setLoading(true);
       console.log("Mics on");
     };
 
@@ -50,37 +73,38 @@ const Index = () => {
       }
       console.log(transcript);
       setNote(transcript);
-      mic.onerror = (event) => {
-        console.log(event.error);
-      };
+      setState(transcript);
+    };
+
+    mic.onerror = (event) => {
+      console.log(event.error);
+      setLoading(false);
     };
   };
 
-  const handleSaveNote = () => {
-    setSavedNotes([...savedNotes, note]);
-    setNote("");
-  };
-  //   add memo for fetchNews
   const memoizedFetchNews = useMemo(() => fetchNews, []);
+
   return (
     <div className="voice-news">
       <button
         onClick={() => setIsListening(!isListening)}
-        className={
-          `bg-blue-400 text-white px-3 py-2 text-sm font-medium ` +
-          (isListening ? "active" : "")
-        }
+        className={`bg-blue-400 text-white px-3 py-2 text-sm font-medium ${isListening ? "active" : ""
+          }`}
         datatype="forrecord"
       >
         {isListening ? <MicrophoneOff /> : <Microphone />}
       </button>
       <div className="title text-2xl font-bold italic">
-        {note ? note : "latest news"}
+        {state || "Voice News"}
       </div>
       <div className="news-list flex flex-row flex-wrap justify-between gap-3 mt-16">
-        {
-        news && news.articles.slice(0,52).map((article) => (
-            <NewsCard key={article.url}
+        {loading ? (
+          <Loading />
+        ) : (
+          newsList &&
+          newsList.articles.slice(0, 52).map((article) => (
+            <NewsCard
+              key={article.url}
               author={article.author}
               description={article.description}
               imageUrl={article.urlToImage}
@@ -89,8 +113,8 @@ const Index = () => {
               title={article.title}
               url={article.url}
             />
-        ))
-        }
+          ))
+        )}
       </div>
     </div>
   );

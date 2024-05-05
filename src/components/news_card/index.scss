@@ -1,23 +1,33 @@
-.news-card{
+.news-card {
     display: flex;
     max-height: max-content;
     min-height: min-content;
     height: max-content;
-    .news-card-image{
+
+    .news-card-image {
         width: 100%;
         height: 220px;
-        img{
+
+        img {
             width: 100%;
             height: 100%;
         }
     }
-    .like,.dislike{
+
+    .like,
+    .dislike {
+        &.active {
+            animation: active 0.5s linear;
+        }
+
         cursor: pointer;
         padding: 5px;
         font-size: 25px;
-        img{
+
+        img {
             position: relative;
-            &::before{
+
+            &::before {
                 content: '';
                 position: absolute;
                 width: 100%;
@@ -25,5 +35,19 @@
                 background-color: white;
             }
         }
-    }    
+    }
+}
+
+@keyframes active {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }

@@ -1,19 +1,43 @@
 /* eslint-disable react/jsx-key */
-/* eslint-disable react-hooks/rules-of-hooks */
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { menu } from "../../utils/const";
 import navLogo from '../../assets/voiceAi.png';
 import "./index.scss";
-const index = () => {
-  // add useState for open and close menu
+import { VoiceNewsContext } from "../../context";
+import fetchNews from "../../service";
+
+const Index = () => {
+  const { setState, setLoading,setNewsList } = useContext(VoiceNewsContext);
   const [open, setOpen] = useState(false);
+  // add searchNote and function
+  const [searchNote, setSearchNote] = useState('');
+  const handleChange = (e) => {
+    setSearchNote(e.target.value);
+    if (e.keyCode === 13) {
+      setSearchNote('');
+      const fetchData = async () => {
+        setLoading(true);
+        try {
+          const data = await fetchNews(e.target.value);
+          setLoading(false);
+          setNewsList(data);
+
+        } catch (error) {
+          console.log(error);
+        }
+      };
+      fetchData();
+    }
+  };
+
   const navLinkConstStyle =
     "bg-gray-900 text-white rounded-md px-3 py-2 text-sm font-medium nav-link";
+
   return (
     <div className="navbar-component mx-auto">
       <nav className="bg-gray-800">
-        <div className="mx-auto w-[100%] max-w-7xl px-2 sm:px-6  lg:px-8">
+        <div className="mx-auto w-[100%] max-w-7xl px-2 sm:px-6 lg:px-8">
           <div className="relative flex h-16 items-center justify-between">
             <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
               <button
@@ -64,35 +88,25 @@ const index = () => {
                   alt="Your Company"
                 />
               </div>
-              <div className="hidden sm:ml-6 sm:flex flex-row items-center ">
+              <div className="hidden sm:ml-6 sm:flex flex-row items-center">
                 <div className="flex space-x-4">
-                  {menu.map((item, index) => {
-                    return (
-                      <NavLink
-                        to={`/${
-                          item === "dashboard" ? "" : item.toLowerCase()
-                        }`}
-                        key={index}
-                        className={({ isActive, ispending }) => {
-                          // return isActive? navLinkConstStyle : "text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium nav-link"
-                          return isActive
-                            ? navLinkConstStyle
-                            : navLinkConstStyle.replace(
-                                "bg-gray-900",
-                                "bg-transparent hover:bg-gray-700 hover:text-white"
-                              );
-                        }}
-                        aria-current="page"
-                      >
-                        {item}
-                      </NavLink>
-                    );
-                  })}
+                  {menu.map((item, index) => (
+                    <NavLink
+                      to={`/${item === "dashboard" ? "" : item.toLowerCase()}`}
+                      key={index}
+                      className={({ isActive, ispending }) =>
+                        isActive ? navLinkConstStyle : navLinkConstStyle.replace("bg-gray-900", "bg-transparent hover:bg-gray-700 hover:text-white")
+                      }
+                      aria-current="page"
+                    >
+                      {item}
+                    </NavLink>
+                  ))}
                 </div>
               </div>
             </div>
             <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-              <div className="relative hidden md:block mr-10 ">
+              <div className="relative hidden md:block mr-10">
                 <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                   <button type="button">
                     <svg
@@ -118,6 +132,10 @@ const index = () => {
                   id="search-navbar"
                   className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 outline-none border-none"
                   placeholder="Search..."
+                  value={searchNote}
+
+                  onChange={handleChange}
+                  onKeyDown={handleChange}
                 />
               </div>
               <button
@@ -145,27 +163,18 @@ const index = () => {
           </div>
         </div>
 
-        <div
-          className={(open ? "block" : "hidden") + " sm:hidden"}
-          id="mobile-menu"
-        >
-          <div className="space-y-1 flex flex-col  px-2 pb-3 pt-2">
-            {menu.map((item, index) => {
-              return (
-                <NavLink
-                  to={`/${item === "dashboard" ? "" : item.toLowerCase()}`}
-                  key={index}
-                  className={({ isActive, ispending }) => {
-                    return isActive
-                      ? navLinkConstStyle
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium nav-link";
-                  }}
-                  aria-current="page"
-                >
-                  {item}
-                </NavLink>
-              );
-            })}
+        <div className={(open ? "block" : "hidden") + " sm:hidden"} id="mobile-menu">
+          <div className="space-y-1 flex flex-col px-2 pb-3 pt-2">
+            {menu.map((item, index) => (
+              <NavLink
+                to={`/${item === "dashboard" ? "" : item.toLowerCase()}`}
+                key={index}
+                className={({ isActive, ispending }) => isActive ? navLinkConstStyle : "text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium nav-link"}
+                aria-current="page"
+              >
+                {item}
+              </NavLink>
+            ))}
           </div>
         </div>
       </nav>
@@ -173,4 +182,4 @@ const index = () => {
   );
 };
 
-export default index;
+export default Index;
